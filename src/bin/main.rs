@@ -15,30 +15,12 @@ fn main() {
     ).get_matches();
 
     let mut talismans = Vec::new();
-    for _ in 0..matches.value_of("COMMON").map(|s| s.parse::<u32>().unwrap()).unwrap_or(0) {
-        talismans.push(Talisman{
-            rarity: Rarity::Common
-        })
-    }
-    for _ in 0..matches.value_of("UNCOMMON").map(|s| s.parse::<u32>().unwrap()).unwrap_or(0) {
-        talismans.push(Talisman{
-            rarity: Rarity::Uncommon
-        })
-    }
-    for _ in 0..matches.value_of("RARE").map(|s| s.parse::<u32>().unwrap()).unwrap_or(0) {
-        talismans.push(Talisman{
-            rarity: Rarity::Rare
-        })
-    }
-    for _ in 0..matches.value_of("EPIC").map(|s| s.parse::<u32>().unwrap()).unwrap_or(0) {
-        talismans.push(Talisman{
-            rarity: Rarity::Epic
-        })
-    }
-    for _ in 0..matches.value_of("LEGENDARY").map(|s| s.parse::<u32>().unwrap()).unwrap_or(0) {
-        talismans.push(Talisman{
-            rarity: Rarity::Legendary
-        })
+    for (i, t) in vec!["COMMON", "UNCOMMON", "RARE", "EPIC", "LEGENDARY"].iter().enumerate() {
+        for _ in 0..matches.value_of(t).map(|s| s.parse::<u32>().unwrap()).unwrap_or(0) {
+            talismans.push(Talisman{
+                rarity: (i as u8).into()
+            })
+        }
     }
 
     //let base_crit_chance = matches.value_of("BASE_CRIT_CHANCE").map(|s| s.parse::<u64>().unwrap()).unwrap_or(0);

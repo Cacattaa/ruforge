@@ -8,6 +8,12 @@ pub enum Rarity {
     Legendary,
 }
 
+impl From<u8> for Rarity {
+    fn from(t:u8) -> Rarity {
+        unsafe { std::mem::transmute(t) }
+    }
+}
+
 #[derive(Debug)]
 pub enum Reforge {
     CriticalChance = 0,
