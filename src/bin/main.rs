@@ -12,6 +12,7 @@ fn main() {
         (@arg RARE: -r --rare +takes_value "Number of rare talisman(s)")
         (@arg EPIC: -e --epic +takes_value "Number of epic talisman(s)")
         (@arg LEGENDARY: -l --legendary +takes_value "Number of legendary talisman(s)")
+        (@arg BASE_CRIT_CHANCE: -b --("base-crit-chance") +takes_value "Base crit chance(s)")
     ).get_matches();
 
     let mut talismans = Vec::new();
@@ -23,8 +24,7 @@ fn main() {
         }
     }
 
-    //let base_crit_chance = matches.value_of("BASE_CRIT_CHANCE").map(|s| s.parse::<u64>().unwrap()).unwrap_or(0);
-    let base_crit_chance = 62;
+    let base_crit_chance = matches.value_of("BASE_CRIT_CHANCE").map(|s| s.parse::<u64>().unwrap()).unwrap_or(0);
 
     let end = 2_u64.pow(talismans.len() as u32) - 1;
     let chunk = end / (num_cpus::get() as u64);
