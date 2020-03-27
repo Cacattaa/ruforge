@@ -1,4 +1,4 @@
-use rustforge::talisman::*;
+use ruforge::*;
 
 use clap::clap_app;
 use rayon::prelude::*;
