@@ -1,9 +1,9 @@
 use std::convert::TryInto;
 
-use ruforge::*;
+use ruforge::inventory::Inventory;
+use ruforge::talisman::Talisman;
 
 use clap::clap_app;
-use ruforge::inventory::Inventory;
 
 fn main() {
     let matches = clap_app!(myapp =>
@@ -39,6 +39,5 @@ fn main() {
     let inventory = Inventory::new(base_crit_chance, &talismans);
     let improved = inventory.improved();
 
-    println!("{:#?}", &improved);
-    println!("{:#?}", &improved.stats());
+    println!("{}", &improved);
 }

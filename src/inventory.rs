@@ -1,10 +1,12 @@
 use std::cmp::Ordering;
 use std::ops::Add;
 
+use crate::reforge::*;
 use crate::stats::*;
 use crate::talisman::*;
 
 use rayon::prelude::*;
+use std::fmt::{Display, Formatter};
 
 #[derive(Clone, Debug)]
 pub struct Inventory {
@@ -78,11 +80,11 @@ impl Inventory {
     {
         for t in iter {
             match t.reforge {
-                Reforge::CriticalChance(_) => {
+                Reforge::CriticalChance(_, _) => {
                     t.reforge_as_crit_damage();
                     break;
                 }
-                Reforge::CriticalDamage(_) => t.reforge_as_crit_chance(),
+                Reforge::CriticalDamage(_, _) => t.reforge_as_crit_chance(),
             }
         }
     }
@@ -127,3 +129,13 @@ impl PartialEq for Inventory {
     }
 }
 impl Eq for Inventory {}
+
+impl Display for Inventory {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "Base Critical Damage: {}", self.base_crit_chance)?;
+        for t in &self.talismans {
+            writeln!(f, "{}", t)?;
+        }
+        write!(f, "\nFinal Stats: {}", self.stats())
+    }
+}
