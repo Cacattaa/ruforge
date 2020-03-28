@@ -17,24 +17,23 @@ fn main() {
 
     let mut talismans = Vec::new();
     for (i, t) in vec!["COMMON", "UNCOMMON", "RARE", "EPIC", "LEGENDARY"].iter().enumerate() {
-        for _ in 0..matches.value_of(t).map(|s| s.parse::<u32>().unwrap()).unwrap_or(0) {
+        for _ in 0..matches.value_of(t).map(|s| s.parse::<usize>().unwrap()).unwrap_or(0) {
             talismans.push(Talisman{
                 rarity: (i as u8).into()
             })
         }
     }
-
     let base_crit_chance = matches.value_of("BASE_CRIT_CHANCE").map(|s| s.parse::<u64>().unwrap()).unwrap_or(0);
 
+    let n_proc = num_cpus::get() as u64;
     let end = 2_u64.pow(talismans.len() as u32) - 1;
-    let chunk = end / (num_cpus::get() as u64);
+    let chunk = end / n_proc;
 
-    (0..(num_cpus::get() as u64)).into_par_iter().for_each(|i| {
+    (0..n_proc).into_par_iter().for_each(|i| {
         let best_config = solve(&talismans, i * chunk, (i + 1) * chunk, base_crit_chance);
 
         let score = score(&talismans, best_config);
         let current = evaluate(score, base_crit_chance);
         println!("Score: {}, config: {:028b}", current, best_config);
     });
-    //println!("{:#064b}", solve(&talismans, 0, end, base_crit_chance));
 }

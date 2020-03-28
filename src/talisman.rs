@@ -9,7 +9,8 @@ pub enum Rarity {
 }
 
 impl From<u8> for Rarity {
-    fn from(t:u8) -> Rarity {
+    fn from(t: u8) -> Rarity {
+        assert!(t >= (Rarity::Common as u8) && t <= (Rarity::Legendary as u8));
         unsafe { std::mem::transmute(t) }
     }
 }
