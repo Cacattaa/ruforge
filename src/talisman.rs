@@ -1,3 +1,5 @@
+use std::convert::TryFrom;
+
 #[derive(Copy, Clone, Debug)]
 #[repr(u8)]
 pub enum Rarity {
@@ -8,10 +10,14 @@ pub enum Rarity {
     Legendary,
 }
 
-impl From<u8> for Rarity {
-    fn from(t: u8) -> Rarity {
-        assert!(t >= (Rarity::Common as u8) && t <= (Rarity::Legendary as u8));
-        unsafe { std::mem::transmute(t) }
+impl TryFrom<u8> for Rarity {
+    type Error = &'static str;
+
+    fn try_from(t: u8) -> Result<Rarity, Self::Error> {
+        if t > (Rarity::Legendary as u8) {
+            return Err("test")
+        }
+        Ok(unsafe { std::mem::transmute(t) })
     }
 }
 

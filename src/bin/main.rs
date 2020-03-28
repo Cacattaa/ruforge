@@ -1,3 +1,5 @@
+use std::convert::TryInto;
+
 use ruforge::*;
 
 use clap::clap_app;
@@ -19,7 +21,7 @@ fn main() {
     for (i, t) in vec!["COMMON", "UNCOMMON", "RARE", "EPIC", "LEGENDARY"].iter().enumerate() {
         for _ in 0..matches.value_of(t).map(|s| s.parse::<usize>().unwrap()).unwrap_or(0) {
             talismans.push(Talisman{
-                rarity: (i as u8).into()
+                rarity: (i as u8).try_into().unwrap()
             })
         }
     }
