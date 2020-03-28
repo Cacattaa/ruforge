@@ -3,7 +3,7 @@ use std::convert::TryInto;
 use ruforge::*;
 
 use clap::clap_app;
-use rayon::prelude::*;
+use ruforge::inventory::Inventory;
 
 fn main() {
     let matches = clap_app!(myapp =>
@@ -15,27 +15,30 @@ fn main() {
         (@arg EPIC: -e --epic +takes_value "Number of epic talisman(s)")
         (@arg LEGENDARY: -l --legendary +takes_value "Number of legendary talisman(s)")
         (@arg BASE_CRIT_CHANCE: -b --("base-crit-chance") +takes_value "Base crit chance(s)")
-    ).get_matches();
+    )
+    .get_matches();
 
     let mut talismans = Vec::new();
-    for (i, t) in vec!["COMMON", "UNCOMMON", "RARE", "EPIC", "LEGENDARY"].iter().enumerate() {
-        for _ in 0..matches.value_of(t).map(|s| s.parse::<usize>().unwrap()).unwrap_or(0) {
-            talismans.push(Talisman{
-                rarity: (i as u8).try_into().unwrap()
-            })
+    for (i, t) in vec!["COMMON", "UNCOMMON", "RARE", "EPIC", "LEGENDARY"]
+        .iter()
+        .enumerate()
+    {
+        for _ in 0..matches
+            .value_of(t)
+            .map(|s| s.parse::<usize>().unwrap())
+            .unwrap_or(0)
+        {
+            talismans.push(Talisman::new((i as u8).try_into().unwrap()))
         }
     }
-    let base_crit_chance = matches.value_of("BASE_CRIT_CHANCE").map(|s| s.parse::<u64>().unwrap()).unwrap_or(0);
+    let base_crit_chance = matches
+        .value_of("BASE_CRIT_CHANCE")
+        .map(|s| s.parse::<u16>().unwrap())
+        .unwrap_or(0);
 
-    let n_proc = num_cpus::get() as u64;
-    let end = 2_u64.pow(talismans.len() as u32) - 1;
-    let chunk = end / n_proc;
+    let inventory = Inventory::new(base_crit_chance, &talismans);
+    let improved = inventory.improved();
 
-    (0..n_proc).into_par_iter().for_each(|i| {
-        let best_config = solve(&talismans, i * chunk, (i + 1) * chunk, base_crit_chance);
-
-        let score = score(&talismans, best_config);
-        let current = evaluate(score, base_crit_chance);
-        println!("Score: {}, config: {:028b}", current, best_config);
-    });
+    println!("{:#?}", &improved);
+    println!("{:#?}", &improved.stats());
 }

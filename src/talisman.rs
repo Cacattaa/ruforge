@@ -1,5 +1,7 @@
 use std::convert::TryFrom;
 
+use crate::stats::*;
+
 #[derive(Copy, Clone, Debug)]
 #[repr(u8)]
 pub enum Rarity {
@@ -13,101 +15,102 @@ pub enum Rarity {
 impl TryFrom<u8> for Rarity {
     type Error = &'static str;
 
-    fn try_from(t: u8) -> Result<Rarity, Self::Error> {
+    fn try_from(t: u8) -> Result<Self, Self::Error> {
         if t > (Rarity::Legendary as u8) {
-            return Err("test")
+            return Err("test");
         }
         Ok(unsafe { std::mem::transmute(t) })
     }
 }
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug)]
 pub enum Reforge {
-    CriticalChance = 0,
-    CriticalDamage
-}
-
-#[derive(Debug)]
-pub struct Stats {
-    pub critical_chance: u64,
-    pub critical_damage: u64
+    CriticalChance(Stats),
+    CriticalDamage(Stats),
 }
 
 const STATS_MAPPING: [[Stats; 2]; 5] = [
     [
-        Stats{critical_chance: 1, critical_damage: 1},
-        Stats{critical_chance: 0, critical_damage: 3},
+        Stats {
+            critical_chance: 1,
+            critical_damage: 1,
+        },
+        Stats {
+            critical_chance: 0,
+            critical_damage: 3,
+        },
     ],
     [
-        Stats{critical_chance: 2, critical_damage: 2},
-        Stats{critical_chance: 0, critical_damage: 5},
+        Stats {
+            critical_chance: 2,
+            critical_damage: 2,
+        },
+        Stats {
+            critical_chance: 0,
+            critical_damage: 5,
+        },
     ],
     [
-        Stats{critical_chance: 3, critical_damage: 2},
-        Stats{critical_chance: 0, critical_damage: 8},
+        Stats {
+            critical_chance: 3,
+            critical_damage: 2,
+        },
+        Stats {
+            critical_chance: 0,
+            critical_damage: 8,
+        },
     ],
     [
-        Stats{critical_chance: 6, critical_damage: 3},
-        Stats{critical_chance: 0, critical_damage: 12},
+        Stats {
+            critical_chance: 6,
+            critical_damage: 3,
+        },
+        Stats {
+            critical_chance: 0,
+            critical_damage: 12,
+        },
     ],
     [
-        Stats{critical_chance: 8, critical_damage: 5},
-        Stats{critical_chance: 0, critical_damage: 15},
+        Stats {
+            critical_chance: 8,
+            critical_damage: 5,
+        },
+        Stats {
+            critical_chance: 0,
+            critical_damage: 15,
+        },
     ],
 ];
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug)]
 pub struct Talisman {
-    pub rarity: Rarity
+    pub rarity: Rarity,
+    pub reforge: Reforge,
 }
 
-pub fn solve(talismans: &[Talisman], start: u64, end: u64, base_crit_chance: u64) -> u64 {
-    let mut max = 0;
-    let mut res = 0;
-    for i in start..end {
-        let score = score(talismans, i);
-        let current = evaluate(score, base_crit_chance);
-        if current > max {
-            max = current;
-            res = i;
+impl Talisman {
+    pub fn new(rarity: Rarity) -> Self {
+        Self {
+            rarity,
+            reforge: Reforge::CriticalChance(STATS_MAPPING[rarity as usize][0]),
         }
     }
 
-    res
+    #[inline(always)]
+    pub fn reforge_as_crit_chance(&mut self) {
+        self.reforge = Reforge::CriticalChance(STATS_MAPPING[self.rarity as usize][0])
+    }
+
+    #[inline(always)]
+    pub fn reforge_as_crit_damage(&mut self) {
+        self.reforge = Reforge::CriticalDamage(STATS_MAPPING[self.rarity as usize][1])
+    }
 }
 
-pub fn score(talismans: &[Talisman], mut config: u64) -> Stats {
-    let mut total_stats = Stats{ critical_chance: 0, critical_damage: 0 };
-
-    let mut talismans = talismans.iter();
-    while config != 0 {
-        let current = talismans.next().expect("should have find one here");
-        let choice = config & 1;
-
-        let stats = &STATS_MAPPING[current.rarity as u8 as usize][choice as usize];
-        total_stats.critical_chance += stats.critical_chance;
-        total_stats.critical_damage += stats.critical_damage;
-
-        config = config >> 1;
+impl Into<Stats> for &Talisman {
+    fn into(self) -> Stats {
+        match self.reforge {
+            Reforge::CriticalChance(s) | Reforge::CriticalDamage(s) => s,
+        }
     }
-
-    for talisman in talismans {
-        let stats = &STATS_MAPPING[talisman.rarity as u8 as usize][0];
-        total_stats.critical_chance += stats.critical_chance;
-        total_stats.critical_damage += stats.critical_damage;
-    }
-
-    total_stats
-}
-
-pub fn evaluate(stats: Stats, base_crit_chance: u64) -> u64 {
-    let mut res: u64 = 0;
-    res += stats.critical_damage;
-    if base_crit_chance + stats.critical_chance > 100 {
-        res += 100_000
-    } else {
-        res += (base_crit_chance + stats.critical_chance) * 1_000
-    }
-
-    res
 }
