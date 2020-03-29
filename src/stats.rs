@@ -1,6 +1,5 @@
-use std::ops::Add;
 use std::fmt::{Display, Formatter};
-
+use std::ops::Add;
 
 #[derive(Copy, Clone, Default, Eq, PartialEq, Debug)]
 pub struct Stats {
@@ -21,6 +20,10 @@ impl Add for Stats {
 
 impl Display for Stats {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Critical Chance: {} - Critical Damage: {}", self.critical_chance, self.critical_damage)
+        write!(
+            f,
+            "Critical Chance: {} - Critical Damage: {}",
+            self.critical_chance, self.critical_damage
+        )
     }
 }

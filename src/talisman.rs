@@ -19,7 +19,7 @@ impl TryFrom<u8> for Rarity {
 
     fn try_from(t: u8) -> Result<Self, Self::Error> {
         if t > (Rarity::Legendary as u8) {
-            return Err("test");
+            return Err("invalid rarity index");
         }
         Ok(unsafe { std::mem::transmute(t) })
     }

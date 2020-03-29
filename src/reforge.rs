@@ -1,6 +1,6 @@
 use crate::stats::*;
-use Reforge::*;
 use std::fmt::{Display, Formatter, Result};
+use Reforge::*;
 
 #[derive(Copy, Clone, Debug)]
 pub enum Reforge {
@@ -12,7 +12,7 @@ impl Display for Reforge {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         match self {
             CriticalChance(_, name) => write!(f, "Critical Chance - {}", name),
-            CriticalDamage(_, name) => write!(f, "Critical Damage - {}", name)
+            CriticalDamage(_, name) => write!(f, "Critical Damage - {}", name),
         }
     }
 }
