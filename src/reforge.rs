@@ -2,7 +2,7 @@ use crate::stats::*;
 use std::fmt::{Display, Formatter, Result};
 use Reforge::*;
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum Reforge {
     CriticalChance(Stats, &'static str),
     CriticalDamage(Stats, &'static str),

@@ -132,9 +132,24 @@ impl Eq for Inventory {}
 
 impl Display for Inventory {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "Base Critical Damage: {}", self.base_crit_chance)?;
+        let mut groups: Vec<(u8, Talisman)> = Vec::new();
         for t in &self.talismans {
-            writeln!(f, "{}", t)?;
+            let mut found = false;
+            for (i, (n, t2)) in groups.iter().enumerate() {
+                if *t2 == *t {
+                    groups[i] = (n + 1, *t);
+                    found = true;
+                    break;
+                }
+            }
+            if !found {
+                groups.push((1, *t));
+            }
+        }
+
+        writeln!(f, "Base Critical Damage: {}", self.base_crit_chance)?;
+        for (n, t) in groups {
+            writeln!(f, "{}x {}", n, t)?;
         }
         write!(f, "\nFinal Stats: {}", self.stats())
     }

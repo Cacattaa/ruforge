@@ -4,7 +4,7 @@ use crate::reforge::*;
 use crate::stats::*;
 use std::fmt::{Display, Formatter};
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
 #[repr(u8)]
 pub enum Rarity {
     Common = 0,
@@ -25,7 +25,7 @@ impl TryFrom<u8> for Rarity {
     }
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub struct Talisman {
     pub rarity: Rarity,
     pub reforge: Reforge,
