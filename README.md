@@ -22,7 +22,7 @@ OPTIONS:
 
 ```sh
 $ cargo run --bin main -- -c 11 -u 10 -r 6 -e 1 -l 0 -b 62
-Base Critical Damage: 62
+Base Critical Chance: 62
 9x Common - Critical Damage - Itchy
 2x Common - Critical Chance - Godly
 12x Uncommon - Critical Chance - Godly
