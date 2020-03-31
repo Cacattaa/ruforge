@@ -4,9 +4,9 @@ use std::fmt::{Display, Formatter};
 use crate::stats::*;
 use crate::talisman::*;
 
-use rayon::prelude::*;
-use rand::{thread_rng, rngs::ThreadRng};
 use rand::seq::SliceRandom;
+use rayon::prelude::*;
+use rand::{rngs::ThreadRng, thread_rng};
 
 #[derive(Clone, Debug)]
 pub struct Inventory {
@@ -29,10 +29,11 @@ impl Inventory {
             .iter()
             .fold(self.base_stats, |c, t| c + t.reforge.stats)
     }
-
     #[inline(always)]
     fn damage(&self, stats: &Stats) -> u32 {
-        (((5 + self.weapon_damage + stats.strength / 5) as u32 * (100 + stats.strength) as u32) * (100 + stats.critical_damage) as u32) / 10_000
+        ((5 + self.weapon_damage + stats.strength / 5) as u32 *
+         (100 + stats.strength) as u32 *
+         (100 + stats.critical_damage) as u32) / 10_000
     }
 
     pub fn improved(&self, iterations: u64, attempts: u64) -> Inventory {
@@ -42,18 +43,19 @@ impl Inventory {
 
         (0..iterations)
             .into_par_iter()
-            .map(|_| self.find_best(attempts))
+            .fold(|| self.clone(), |acc, _| self.find_best(attempts, &acc))
             .max()
             .unwrap()
+            .clone()
     }
 
-    fn find_best(&self, max_attempts: u64) -> Inventory {
+    fn find_best(&self, max_attempts: u64, current_best: &Inventory) -> Inventory {
         let mut seed = thread_rng();
 
         let mut current = self.clone();
         current.shuffle(&mut seed);
 
-        let mut best = current.clone();
+        let mut best = current_best.clone();
 
         let mut attempts = max_attempts;
         while attempts > 0 {
@@ -88,7 +90,10 @@ impl PartialEq for Inventory {
             other_stats.critical_chance >= 100,
         ) {
             (true, false) | (false, true) => false,
-            (true, true) => self_stats.strength == other_stats.strength && self_stats.critical_damage == other_stats.critical_damage,
+            (true, true) => {
+                self_stats.strength == other_stats.strength
+                    && self_stats.critical_damage == other_stats.critical_damage
+            }
             (false, false) => self_stats == other_stats,
         }
     }

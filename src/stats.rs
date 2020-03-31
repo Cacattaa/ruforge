@@ -24,7 +24,7 @@ impl Display for Stats {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "Strength: {} - Critical Chance: {} - Critical Damage: {}",
+            "Strength: \x1b[1;32m{}\x1b[m - Critical Chance: \x1b[1;32m{}\x1b[m - Critical Damage: \x1b[1;32m{}\x1b[m",
             self.strength, self.critical_chance, self.critical_damage
         )
     }
