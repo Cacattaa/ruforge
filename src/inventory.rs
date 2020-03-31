@@ -1,115 +1,76 @@
 use std::cmp::Ordering;
-use std::ops::Add;
+use std::fmt::{Display, Formatter};
 
-use crate::reforge::*;
 use crate::stats::*;
 use crate::talisman::*;
 
 use rayon::prelude::*;
-use std::fmt::{Display, Formatter};
+use rand::{thread_rng, rngs::ThreadRng};
+use rand::seq::SliceRandom;
 
 #[derive(Clone, Debug)]
 pub struct Inventory {
-    base_crit_chance: u16,
+    weapon_damage: u16,
+    base_stats: Stats,
     talismans: Vec<Talisman>,
 }
 
 impl Inventory {
-    pub fn new(base_crit_chance: u16, talismans: &[Talisman]) -> Inventory {
+    pub fn new(weapon_damage: u16, base_stats: Stats, talismans: &[Talisman]) -> Inventory {
         Inventory {
-            base_crit_chance,
+            weapon_damage,
+            base_stats,
             talismans: talismans.to_vec(),
         }
     }
 
     pub fn stats(&self) -> Stats {
-        let stats = Stats {
-            critical_chance: self.base_crit_chance,
-            critical_damage: 0,
-        };
-
         self.talismans
             .iter()
-            .map(|t| t.into())
-            .fold(stats, Stats::add)
+            .fold(self.base_stats, |c, t| c + t.reforge.stats)
+    }
+
+    #[inline(always)]
+    fn damage(&self, stats: &Stats) -> u32 {
+        ((5 + self.weapon_damage + stats.strength / 5) as u32 * (100 + stats.strength) as u32) * (100 + stats.critical_damage) as u32
     }
 
     pub fn improved(&self) -> Inventory {
-        let mut start = self.clone();
-        start
-            .talismans
-            .iter_mut()
-            .for_each(Talisman::reforge_as_crit_chance);
-
-        let number_of_proc = num_cpus::get() as f32;
-        let number_of_proc = 2_u32.pow(number_of_proc.log2() as u32);
-
-        let mut chunks = vec![start.clone()];
-        for _ in 0..(number_of_proc - 1) {
-            Inventory::increment(start.talismans.iter_mut().rev());
-            chunks.push(start.clone());
-        }
-
-        let chunk_size = 2_u64.pow(start.talismans.len() as u32) / (number_of_proc as u64);
-        chunks
+        (0..100_000_000)
             .into_par_iter()
-            .map(|i| i.find_best(chunk_size))
+            .map(|_| self.find_best(100))
             .max()
             .unwrap()
     }
 
-    fn find_best(&self, mut iterations: u64) -> Inventory {
+    fn find_best(&self, max_attempts: u64) -> Inventory {
+        let mut seed = thread_rng();
+
         let mut current = self.clone();
+        current.shuffle(&mut seed);
+
         let mut best = current.clone();
 
-        while iterations > 0 {
-            iterations -= 1;
+        let mut attempts = max_attempts;
+        while attempts > 0 {
+            current.talismans.choose_mut(&mut seed).unwrap().increment_reforge();
+            current.talismans.choose_mut(&mut seed).unwrap().increment_reforge();
 
-            Inventory::increment(current.talismans.iter_mut());
             if current > best {
+                attempts = max_attempts;
                 best = current.clone();
+            } else {
+                attempts -= 1;
             }
         }
 
         best
     }
 
-    fn increment<'a, T>(iter: T)
-    where
-        T: Iterator<Item = &'a mut Talisman>,
-    {
-        for t in iter {
-            match t.reforge {
-                Reforge::CriticalChance(_, _) => {
-                    t.reforge_as_crit_damage();
-                    break;
-                }
-                Reforge::CriticalDamage(_, _) => t.reforge_as_crit_chance(),
-            }
+    fn shuffle(&mut self, seed: &mut ThreadRng) {
+        for t in self.talismans.iter_mut() {
+            t.randomize_reforge(seed);
         }
-    }
-}
-
-impl Ord for Inventory {
-    fn cmp(&self, other: &Self) -> Ordering {
-        let self_stats = self.stats();
-        let other_stats = other.stats();
-
-        match (
-            self_stats.critical_chance >= 100,
-            other_stats.critical_chance >= 100,
-        ) {
-            (true, false) => Ordering::Greater,
-            (false, true) => Ordering::Less,
-            (true, true) => self_stats.critical_damage.cmp(&other_stats.critical_damage),
-            (false, false) => self_stats.critical_chance.cmp(&other_stats.critical_chance),
-        }
-    }
-}
-
-impl PartialOrd for Inventory {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
     }
 }
 
@@ -123,12 +84,35 @@ impl PartialEq for Inventory {
             other_stats.critical_chance >= 100,
         ) {
             (true, false) | (false, true) => false,
-            (true, true) => self_stats.critical_damage == other_stats.critical_damage,
+            (true, true) => self_stats.strength == other_stats.strength && self_stats.critical_damage == other_stats.critical_damage,
             (false, false) => self_stats == other_stats,
         }
     }
 }
 impl Eq for Inventory {}
+
+impl Ord for Inventory {
+    fn cmp(&self, other: &Self) -> Ordering {
+        let self_stats = self.stats();
+        let other_stats = other.stats();
+
+        match (
+            self_stats.critical_chance >= 100,
+            other_stats.critical_chance >= 100,
+        ) {
+            (true, false) => Ordering::Greater,
+            (false, true) => Ordering::Less,
+            (true, true) => self.damage(&self_stats).cmp(&other.damage(&other_stats)),
+            (false, false) => self_stats.critical_chance.cmp(&other_stats.critical_chance),
+        }
+    }
+}
+
+impl PartialOrd for Inventory {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
 
 impl Display for Inventory {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
@@ -141,7 +125,7 @@ impl Display for Inventory {
             }
         }
 
-        writeln!(f, "Base Critical Chance: {}", self.base_crit_chance)?;
+        // writeln!(f, "Base Critical Chance: {}", self.base_crit_chance)?;
         for (n, t) in groups {
             writeln!(f, "{}x {}", n, t)?;
         }

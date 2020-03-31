@@ -1,101 +1,181 @@
-use crate::stats::*;
 use std::fmt::{Display, Formatter, Result};
-use Reforge::*;
+
+use crate::stats::*;
+
+use lazy_static::lazy_static;
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
-pub enum Reforge {
-    CriticalChance(Stats, &'static str),
-    CriticalDamage(Stats, &'static str),
+pub struct Reforge {
+    pub stats: Stats,
+    pub name: &'static str,
 }
 
 impl Display for Reforge {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        match self {
-            CriticalChance(_, name) => write!(f, "Critical Chance - {}", name),
-            CriticalDamage(_, name) => write!(f, "Critical Damage - {}", name),
-        }
+        write!(f, "{}", self.name)
     }
 }
 
-pub const REFORGES_MAPPING: [[Reforge; 2]; 5] = [
-    [
-        CriticalChance(
-            Stats {
-                critical_chance: 1,
-                critical_damage: 1,
+lazy_static! {
+    pub static ref REFORGES_MAPPING: [Vec<Reforge>; 5] = [
+        // Common
+        vec![
+            Reforge {
+                stats: Stats {
+                    strength: 1,
+                    critical_chance: 1,
+                    critical_damage: 1,
+                },
+                name: "Godly",
             },
-            "Godly",
-        ),
-        CriticalDamage(
-            Stats {
-                critical_chance: 0,
-                critical_damage: 3,
+            Reforge {
+                stats: Stats {
+                    strength: 1,
+                    critical_chance: 0,
+                    critical_damage: 3,
+                },
+                name: "Itchy",
             },
-            "Itchy",
-        ),
-    ],
-    [
-        CriticalChance(
-            Stats {
-                critical_chance: 2,
-                critical_damage: 2,
+            Reforge {
+                stats: Stats {
+                    strength: 2,
+                    critical_chance: 0,
+                    critical_damage: 0,
+                },
+                name: "Forceful",
             },
-            "Godly",
-        ),
-        CriticalDamage(
-            Stats {
-                critical_chance: 0,
-                critical_damage: 5,
+        ],
+        // Uncommon
+        vec![
+            Reforge {
+                stats: Stats {
+                    strength: 2,
+                    critical_chance: 2,
+                    critical_damage: 2,
+                },
+                name: "Godly",
             },
-            "Itchy",
-        ),
-    ],
-    [
-        CriticalChance(
-            Stats {
-                critical_chance: 3,
-                critical_damage: 2,
+            Reforge {
+                stats: Stats {
+                    strength: 2,
+                    critical_chance: 0,
+                    critical_damage: 5,
+                },
+                name: "Itchy",
             },
-            "Unpleasant",
-        ),
-        CriticalDamage(
-            Stats {
-                critical_chance: 0,
-                critical_damage: 8,
+            Reforge {
+                stats: Stats {
+                    strength: 4,
+                    critical_chance: 0,
+                    critical_damage: 0,
+                },
+                name: "Forceful",
             },
-            "Itchy",
-        ),
-    ],
-    [
-        CriticalChance(
-            Stats {
-                critical_chance: 6,
-                critical_damage: 3,
+        ],
+        // Rare
+        vec![
+            Reforge {
+                stats: Stats {
+                    strength: 4,
+                    critical_chance: 2,
+                    critical_damage: 3,
+                },
+                name: "Godly",
             },
-            "Unpleasant",
-        ),
-        CriticalDamage(
-            Stats {
-                critical_chance: 0,
-                critical_damage: 12,
+            Reforge {
+                stats: Stats {
+                    strength: 2,
+                    critical_chance: 0,
+                    critical_damage: 8,
+                },
+                name: "Itchy",
             },
-            "Itchy",
-        ),
-    ],
-    [
-        CriticalChance(
-            Stats {
-                critical_chance: 8,
-                critical_damage: 5,
+            Reforge {
+                stats: Stats {
+                    strength: 0,
+                    critical_chance: 3,
+                    critical_damage: 2,
+                },
+                name: "Unpleasant",
             },
-            "Unpleasant",
-        ),
-        CriticalDamage(
-            Stats {
-                critical_chance: 0,
-                critical_damage: 15,
+            Reforge {
+                stats: Stats {
+                    strength: 7,
+                    critical_chance: 0,
+                    critical_damage: 0,
+                },
+                name: "Forceful",
             },
-            "Itchy",
-        ),
-    ],
-];
+        ],
+        // Epic
+        vec![
+            Reforge {
+                stats: Stats {
+                    strength: 7,
+                    critical_chance: 3,
+                    critical_damage: 6,
+                },
+                name: "Godly",
+            },
+            Reforge {
+                stats: Stats {
+                    strength: 3,
+                    critical_chance: 0,
+                    critical_damage: 12,
+                },
+                name: "Itchy",
+            },
+            Reforge {
+                stats: Stats {
+                    strength: 0,
+                    critical_chance: 6,
+                    critical_damage: 3,
+                },
+                name: "Unpleasant",
+            },
+            Reforge {
+                stats: Stats {
+                    strength: 10,
+                    critical_chance: 0,
+                    critical_damage: 0,
+                },
+                name: "Forceful",
+            },
+        ],
+        // Legendary
+        vec![
+            Reforge {
+                stats: Stats {
+                    strength: 10,
+                    critical_chance: 5,
+                    critical_damage: 8,
+                },
+                name: "Godly",
+            },
+            Reforge {
+                stats: Stats {
+                    strength: 5,
+                    critical_chance: 0,
+                    critical_damage: 15,
+                },
+                name: "Itchy",
+            },
+            Reforge {
+                stats: Stats {
+                    strength: 0,
+                    critical_chance: 8,
+                    critical_damage: 5,
+                },
+                name: "Unpleasant",
+            },
+            Reforge {
+                stats: Stats {
+                    strength: 15,
+                    critical_chance: 0,
+                    critical_damage: 0,
+                },
+                name: "Forceful",
+            },
+        ]
+    ];
+}
