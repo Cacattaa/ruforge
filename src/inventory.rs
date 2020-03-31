@@ -32,10 +32,14 @@ impl Inventory {
 
     #[inline(always)]
     fn damage(&self, stats: &Stats) -> u32 {
-        ((5 + self.weapon_damage + stats.strength / 5) as u32 * (100 + stats.strength) as u32) * (100 + stats.critical_damage) as u32
+        (((5 + self.weapon_damage + stats.strength / 5) as u32 * (100 + stats.strength) as u32) * (100 + stats.critical_damage) as u32) / 10_000
     }
 
     pub fn improved(&self, iterations: u64, attempts: u64) -> Inventory {
+        if self.talismans.is_empty() {
+            return self.clone();
+        }
+
         (0..iterations)
             .into_par_iter()
             .map(|_| self.find_best(attempts))
@@ -125,10 +129,16 @@ impl Display for Inventory {
             }
         }
 
-        // writeln!(f, "Base Critical Chance: {}", self.base_crit_chance)?;
-        for (n, t) in groups {
+        writeln!(f, "Base Stats: {}", self.base_stats)?;
+        for (n, t) in &groups {
             writeln!(f, "{}x {}", n, t)?;
         }
-        write!(f, "\nFinal Stats: {}", self.stats())
+        if !groups.is_empty() {
+            write!(f, "\n")?;
+        }
+
+        let final_stats = self.stats();
+        writeln!(f, "Final Stats: {}", &final_stats)?;
+        write!(f, "Final Damage: {}", self.damage(&final_stats))
     }
 }
