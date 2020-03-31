@@ -19,6 +19,8 @@ fn main() {
         (@arg BASE_STRENGTH: -S --("base-strength") +takes_value "Base strength")
         (@arg BASE_CRIT_CHANCE: -C --("base-crit-chance") +takes_value "Base crit chances")
         (@arg BASE_CRIT_DAMAGE: -D --("base-crit-damage") +takes_value "Base crit damage")
+        (@arg ITERATIONS: -i --("iterations") +takes_value "Number of iterations")
+        (@arg ATTEMPTS: -I --("attempts") +takes_value "Number of attempts per iteration")
     )
     .get_matches();
 
@@ -36,10 +38,13 @@ fn main() {
         }
     }
 
-    let weapon_damage = parse_flag(&matches, "WEAPON_DAMAGE");
-    let base_strength = parse_flag(&matches, "BASE_STRENGTH");
-    let base_critical_chance = parse_flag(&matches, "BASE_CRIT_CHANCE");
-    let base_critical_damage = parse_flag(&matches, "BASE_CRIT_DAMAGE");
+    let weapon_damage = parse_flag(&matches, "WEAPON_DAMAGE", 0) as u16;
+    let base_strength = parse_flag(&matches, "BASE_STRENGTH", 0) as u16;
+    let base_critical_chance = parse_flag(&matches, "BASE_CRIT_CHANCE", 0) as u16;
+    let base_critical_damage = parse_flag(&matches, "BASE_CRIT_DAMAGE", 0) as u16;
+
+    let iterations = parse_flag(&matches, "ITERATIONS", 100_000);
+    let attempts = parse_flag(&matches, "ATTEMPTS", 100);
 
     let inventory = Inventory::new(
         weapon_damage,
@@ -48,14 +53,14 @@ fn main() {
             critical_chance: base_critical_chance,
             critical_damage: base_critical_damage
         }, &talismans);
-    let improved = inventory.improved();
+    let improved = inventory.improved(iterations, attempts);
 
     println!("{}", &improved);
 }
 
-fn parse_flag(matches: &ArgMatches, flag_name: &str) -> u16 {
+fn parse_flag(matches: &ArgMatches, flag_name: &str, default: u64) -> u64 {
     matches
         .value_of(flag_name)
-        .map(|s| s.parse::<u16>().unwrap())
-        .unwrap_or(0)
+        .map(|s| s.parse::<u64>().unwrap())
+        .unwrap_or(default)
 }

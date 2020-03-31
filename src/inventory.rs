@@ -35,10 +35,10 @@ impl Inventory {
         ((5 + self.weapon_damage + stats.strength / 5) as u32 * (100 + stats.strength) as u32) * (100 + stats.critical_damage) as u32
     }
 
-    pub fn improved(&self) -> Inventory {
-        (0..100_000_000)
+    pub fn improved(&self, iterations: u64, attempts: u64) -> Inventory {
+        (0..iterations)
             .into_par_iter()
-            .map(|_| self.find_best(100))
+            .map(|_| self.find_best(attempts))
             .max()
             .unwrap()
     }
