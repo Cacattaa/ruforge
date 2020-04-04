@@ -7,8 +7,8 @@ use clap::{clap_app, ArgMatches};
 use ruforge::stats::Stats;
 
 fn main() {
-    let matches = clap_app!(myapp =>
-        (version: "1.0")
+    let matches = clap_app!(ruforge =>
+        (version: "2.0")
         (about: "Calculate best talismans reforge")
         (@arg COMMON: -c --common +takes_value "Number of common talisman(s)")
         (@arg UNCOMMON: -u --uncommon +takes_value "Number of uncommon talisman(s)")
